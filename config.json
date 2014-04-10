@@ -1,0 +1,26 @@
+{
+    "window" : {
+        "width" : 600,
+        "height" : 600
+    },
+
+    "caption" : "Untangle3D",
+    "fps" : 30,
+    "engine" : {
+
+        "background" : {
+            "color" : [0,0,0]
+        },
+
+        "circle" : {
+            "color" : [255,255,0],
+            "radius" : 6,
+            "grub_coef" : 2.0
+        },
+
+        "line" : {
+            "color" : [127,127,0],
+            "width" : 2
+        }
+    }
+}
