@@ -82,8 +82,11 @@ class GameController2D(BaseController):
             p2 = self.objects[edge[1]]
             pd.line(self.display, self.config.line.color, (p1.x, p1.y), (p2.x, p2.y), self.config.line.width)
 
-        for point in self.objects.values():
-            pd.circle(self.display, self.config.circle.color, (point.x, point.y), self.config.circle.radius)
+        for id, point in self.objects.items():
+            color = self.config.circle.color
+            if id == self.grub_id:
+                color = self.config.circle.active_color
+            pd.circle(self.display, color, (point.x, point.y), self.config.circle.radius)
 
         font = pf.Font(None, 20)
         info = font.render("fps: {}".format(fps), True, self.config.line.color)

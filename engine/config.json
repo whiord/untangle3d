@@ -5,12 +5,14 @@
 
     "circle" : {
         "color" : [255,255,0],
+        "active_color" : [255,127,0],
         "radius" : 6,
         "grub_coef" : 2.0
     },
 
     "line" : {
         "color" : [127,127,0],
+        "bad_color" : [127, 63, 0],
         "width" : 2
     }
 }
