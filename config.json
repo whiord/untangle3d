@@ -1,9 +1,4 @@
 {
-    "window" : {
-        "width" : 600,
-        "height" : 600
-    },
-
     "caption" : "Untangle3D",
     "fps" : 30
 }

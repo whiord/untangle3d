@@ -3,6 +3,8 @@ __author__ = 'whiord'
 import geometry.d2
 import readconf
 
+import pygame
+import pygame.display as pdis
 import pygame.draw as pd
 #import pygame.color as pc
 import pygame.locals as pl
@@ -12,9 +14,9 @@ import pygame.font as pf
 class BaseController(object):
     CONFIG_FILE = "engine/config.json"
 
-    def __init__(self, display):
+    def __init__(self):
         self.config = readconf.open_json(BaseController.CONFIG_FILE)
-        self.display = display
+        self.display = None
         self.map_config = None
         self.objects = None
         self.edges = None
@@ -31,23 +33,55 @@ class BaseController(object):
         raise NotImplementedError()
 
     @staticmethod
-    def choose_controller(type, display):
+    def choose_controller(type):
         if type == "2D":
-            return GameController2D(display)
+            return GameController2D()
         else:
             pass
             #return "GameController3D"
 
 
 class GameController2D(BaseController):
-    def __init__(self, display):
-        super(GameController2D, self).__init__(display)
+    def __init__(self):
+        super(GameController2D, self).__init__()
 
     def __find_point(self, pos):
         for id, point in self.objects.items():
             if point.dist_to(*pos) < self.config.circle.radius * self.config.circle.grub_coef:
                 return id
         return None
+
+    def __adjust(self):
+        minx = maxx = self.objects.values()[0].x
+        miny = maxy = self.objects.values()[0].y
+
+        for point in self.objects.values():
+            minx = min(minx, point.x)
+            miny = min(miny, point.y)
+            maxx = max(maxx, point.x)
+            maxy = max(maxy, point.y)
+
+        dx = self.config.borders - minx
+        dy = self.config.borders - miny
+        maxx += dx
+        maxy += dy
+        for point in self.objects.values():
+            point.x += dx
+            point.y += dy
+
+        self.display = pdis.set_mode((maxx + self.config.borders, maxx + self.config.borders), pygame.RESIZABLE)
+
+    def __resize(self, size):
+        old_size = self.display.get_size()
+        scale_x = float(size[0])/float(old_size[0])
+        scale_y = float(size[1])/float(old_size[1])
+        print("Old:", old_size)
+        print("New:", size)
+        print("Sacle:", scale_x, scale_y)
+        for point in self.objects.values():
+            point.x *= scale_x
+            point.y *= scale_y
+        self.display = pdis.set_mode(size, pygame.RESIZABLE)
 
     def open(self, map_config):
         super(GameController2D, self).open(map_config)
@@ -57,7 +91,7 @@ class GameController2D(BaseController):
             self.objects[point.id] = geometry.d2.Point2D(point.x, point.y)
 
         self.edges = map_config.edges
-
+        self.__adjust()
         print("GC:", "objects created: ", len(self.objects))
 
     def dispatch(self, event):
@@ -73,6 +107,8 @@ class GameController2D(BaseController):
         elif event.type == pl.MOUSEBUTTONUP:
             if event.button == 1:
                 self.grub_id = None
+        elif event.type == pl.VIDEORESIZE:
+            self.__resize(event.size)
 
     def update(self, fps, time):
         #print("GC:", "update called")
@@ -106,11 +142,13 @@ class GameController2D(BaseController):
             color = self.config.circle.color
             if id == self.grub_id:
                 color = self.config.circle.active_color
-            pd.circle(self.display, color, (point.x, point.y), self.config.circle.radius)
+            pd.circle(self.display, color, (int(round(point.x)), int(round(point.y))), self.config.circle.radius)
 
         self.info_y = 10
         self.__render_info("fps: {}".format(fps))
-        self.__render_info("tangled: {}".format(len(intersected)))
+        self.__render_info("tangled: {}/{}".format(len(intersected), len(self.edges)))
+
+        pdis.update()
 
     def __render_info(self, text):
         font = pf.Font(None, 20)

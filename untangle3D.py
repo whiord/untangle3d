@@ -15,11 +15,6 @@ class AppController:
     def __init__(self):
         self.config = readconf.open_json(AppController.CONFIG_FILE)
 
-        self.size = (self.config.window.width, self.config.window.height)
-        #self.caption = self.config["caption"]
-        #self.fps = self.config["fps"]
-
-        self.display = None
         self.ended = False
         self.gc = None
         self.clock = None
@@ -31,11 +26,11 @@ class AppController:
         file_name = tkFileDialog.askopenfilename()
         map_config = readconf.open_json(file_name)
 
-        self.gc = engine.gc.BaseController.choose_controller(map_config.type, self.display)
+        self.gc = engine.gc.BaseController.choose_controller(map_config.type)
         self.gc.open(map_config)
 
     def run(self):
-        self.display = pygame.display.set_mode(self.size)
+
         pygame.display.set_caption(self.config.caption)
 
         self.__open_map()
@@ -54,7 +49,6 @@ class AppController:
                     self.gc.dispatch(event)
 
             self.gc.update(self.clock.get_fps(), self.clock.get_time())
-            pygame.display.update()
             self.clock.tick(self.config.fps)
 
         pygame.quit()
