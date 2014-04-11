@@ -19,6 +19,7 @@ class BaseController(object):
         self.objects = None
         self.edges = None
         self.grub_id = None
+        self.info_y = None
 
     def open(self, map_config):
         self.map_config = map_config
@@ -107,6 +108,12 @@ class GameController2D(BaseController):
                 color = self.config.circle.active_color
             pd.circle(self.display, color, (point.x, point.y), self.config.circle.radius)
 
+        self.info_y = 10
+        self.__render_info("fps: {}".format(fps))
+        self.__render_info("tangled: {}".format(len(intersected)))
+
+    def __render_info(self, text):
         font = pf.Font(None, 20)
-        info = font.render("fps: {}".format(fps), True, self.config.line.color)
-        self.display.blit(info, (10,10))
+        info = font.render(text ,True, self.config.line.color)
+        self.display.blit(info, (10, self.info_y))
+        self.info_y += info.get_size()[1] + 5
