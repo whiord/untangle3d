@@ -1,6 +1,8 @@
 __author__ = 'whiord'
 
 import objects.point
+import readconf
+
 import pygame.draw as pd
 #import pygame.color as pc
 import pygame.locals as pl
@@ -8,8 +10,10 @@ import pygame.font as pf
 
 
 class BaseController(object):
-    def __init__(self, config, display):
-        self.config = config
+    CONFIG_FILE = "engine/config.json"
+
+    def __init__(self, display):
+        self.config = readconf.open_json(BaseController.CONFIG_FILE)
         self.display = display
         self.map_config = None
         self.objects = None
@@ -26,16 +30,17 @@ class BaseController(object):
         raise NotImplementedError()
 
     @staticmethod
-    def choose_controller(map_config):
-        if map_config["type"] == "2D":
-            return "GameController2D"
+    def choose_controller(type, display):
+        if type == "2D":
+            return GameController2D(display)
         else:
-            return "GameController3D"
+            pass
+            #return "GameController3D"
 
 
 class GameController2D(BaseController):
-    def __init__(self, config, display):
-        super(GameController2D, self).__init__(config, display)
+    def __init__(self, display):
+        super(GameController2D, self).__init__(display)
 
     def __find_point(self, pos):
         for id, point in self.objects.items():
@@ -47,10 +52,10 @@ class GameController2D(BaseController):
         super(GameController2D, self).open(map_config)
         self.objects = {}
 
-        for point in map_config["objects"]:
-            self.objects[point["id"]] = objects.point.Point2D(point["x"], point["y"])
+        for point in map_config.objects:
+            self.objects[point.id] = objects.point.Point2D(point.x, point.y)
 
-        self.edges = map_config["edges"]
+        self.edges = map_config.edges
 
         print("GC:", "objects created: ", len(self.objects))
 

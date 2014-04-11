@@ -28,22 +28,19 @@ class AppController:
 
         pygame.init()
 
-    def _open_map(self):
+    def __open_map(self):
         Tkinter.Tk().withdraw()
-        filename = tkFileDialog.askopenfilename()
-        with io.open(filename) as map_file:
-            map_config = json.load(map_file)
-            print(map_config)
+        file_name = tkFileDialog.askopenfilename()
+        map_config = readconf.open_json(file_name)
 
-        cl = engine.gc.BaseController.choose_controller(map_config)
-        self.gc = eval("engine.gc." + cl)(self.config.engine, self.display)
+        self.gc = engine.gc.BaseController.choose_controller(map_config.type, self.display)
         self.gc.open(map_config)
 
     def run(self):
         self.display = pygame.display.set_mode(self.size)
         pygame.display.set_caption(self.config.caption)
 
-        self._open_map()
+        self.__open_map()
         self.clock = pt.Clock()
 
         while not self.ended:
@@ -53,7 +50,7 @@ class AppController:
                     break
                 elif event.type == pl.KEYDOWN:
                     if event.key == pl.K_o:
-                        self._open_map()
+                        self.__open_map()
                 else:
                     print(event)
                     self.gc.dispatch(event)
