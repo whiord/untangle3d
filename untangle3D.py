@@ -35,7 +35,8 @@ class AppController:
             map_config = json.load(map_file)
             print(map_config)
 
-        self.gc = engine.gc.GameController(self.config["engine"], self.display)
+        cl = engine.gc.BaseController.choose_controller(map_config)
+        self.gc = eval("engine.gc." + cl)(self.config["engine"], self.display)
         self.gc.open(map_config)
 
     def run(self):

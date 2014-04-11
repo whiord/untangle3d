@@ -6,7 +6,8 @@ import pygame.draw as pd
 import pygame.locals as pl
 import pygame.font as pf
 
-class GameController:
+
+class BaseController(object):
     def __init__(self, config, display):
         self.config = config
         self.display = display
@@ -24,25 +25,46 @@ class GameController:
 
     def open(self, map_config):
         self.map_config = map_config
-        self.objects = {}
 
-        for point in map_config["objects"]:
-            self.objects[point["id"]] = objects.point.Point(point["x"], point["y"])
+    def dispatch(self, event):
+        raise NotImplementedError()
 
-        self.edges = map_config["edges"]
+    def update(self, fps, time):
+        raise NotImplementedError()
 
-        print("GC:", "objects created: ", len(self.objects))
+    @staticmethod
+    def choose_controller(map_config):
+        if map_config["type"] == "2D":
+            return "GameController2D"
+        else:
+            return "GameController3D"
 
-    def _find_point(self, pos):
+
+class GameController2D(BaseController):
+    def __init__(self, config, display):
+        super(GameController2D, self).__init__(config, display)
+
+    def __find_point(self, pos):
         for id, point in self.objects.items():
             if point.dist_to(*pos) < self.circle_radius * self.grub_coef:
                 return id
         return None
 
+    def open(self, map_config):
+        super(GameController2D, self).open(map_config)
+        self.objects = {}
+
+        for point in map_config["objects"]:
+            self.objects[point["id"]] = objects.point.Point2D(point["x"], point["y"])
+
+        self.edges = map_config["edges"]
+
+        print("GC:", "objects created: ", len(self.objects))
+
     def dispatch(self, event):
         if event.type == pl.MOUSEBUTTONDOWN:
             if event.button == 1:
-                id = self._find_point(event.pos)
+                id = self.__find_point(event.pos)
                 if id is not None:
                     self.grub_id = id
         elif event.type == pl.MOUSEMOTION:
