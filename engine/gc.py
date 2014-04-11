@@ -16,13 +16,6 @@ class BaseController(object):
         self.edges = None
         self.grub_id = None
 
-        self.circle_radius = config["circle"]["radius"]
-        self.circle_color = config["circle"]["color"]
-        self.grub_coef = config["circle"]["grub_coef"]
-        self.line_color = config["line"]["color"]
-        self.line_width = config["line"]["width"]
-        self.background_color = config["background"]["color"]
-
     def open(self, map_config):
         self.map_config = map_config
 
@@ -46,7 +39,7 @@ class GameController2D(BaseController):
 
     def __find_point(self, pos):
         for id, point in self.objects.items():
-            if point.dist_to(*pos) < self.circle_radius * self.grub_coef:
+            if point.dist_to(*pos) < self.config.circle.radius * self.config.circle.grub_coef:
                 return id
         return None
 
@@ -77,16 +70,16 @@ class GameController2D(BaseController):
 
     def update(self, fps, time):
         #print("GC:", "update called")
-        self.display.fill(self.background_color)
+        self.display.fill(self.config.background.color)
 
         for edge in self.edges:
             p1 = self.objects[edge[0]]
             p2 = self.objects[edge[1]]
-            pd.line(self.display, self.line_color, (p1.x, p1.y), (p2.x, p2.y), self.line_width)
+            pd.line(self.display, self.config.line.color, (p1.x, p1.y), (p2.x, p2.y), self.config.line.width)
 
         for point in self.objects.values():
-            pd.circle(self.display, self.circle_color, (point.x, point.y), self.circle_radius)
+            pd.circle(self.display, self.config.circle.color, (point.x, point.y), self.config.circle.radius)
 
         font = pf.Font(None, 20)
-        info = font.render("fps: {}".format(fps), True, self.line_color)
+        info = font.render("fps: {}".format(fps), True, self.config.line.color)
         self.display.blit(info, (10,10))

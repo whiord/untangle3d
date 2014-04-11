@@ -8,18 +8,18 @@ import io
 import Tkinter, tkFileDialog
 
 import engine.gc
+import engine.readconf as readconf
 
 
 class AppController:
     CONFIG_FILE = "config.json"
 
     def __init__(self):
-        with io.open(AppController.CONFIG_FILE) as conf_file:
-            self.config = json.load(conf_file)
-        #print(self.config)
-        self.size = (self.config["window"]["width"], self.config["window"]["height"])
-        self.caption = self.config["caption"]
-        self.fps = self.config["fps"]
+        self.config = readconf.open_json(AppController.CONFIG_FILE)
+
+        self.size = (self.config.window.width, self.config.window.height)
+        #self.caption = self.config["caption"]
+        #self.fps = self.config["fps"]
 
         self.display = None
         self.ended = False
@@ -36,12 +36,12 @@ class AppController:
             print(map_config)
 
         cl = engine.gc.BaseController.choose_controller(map_config)
-        self.gc = eval("engine.gc." + cl)(self.config["engine"], self.display)
+        self.gc = eval("engine.gc." + cl)(self.config.engine, self.display)
         self.gc.open(map_config)
 
     def run(self):
         self.display = pygame.display.set_mode(self.size)
-        pygame.display.set_caption(self.caption)
+        pygame.display.set_caption(self.config.caption)
 
         self._open_map()
         self.clock = pt.Clock()
@@ -60,7 +60,7 @@ class AppController:
 
             self.gc.update(self.clock.get_fps(), self.clock.get_time())
             pygame.display.update()
-            self.clock.tick(self.fps)
+            self.clock.tick(self.config.fps)
 
         pygame.quit()
 
