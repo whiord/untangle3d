@@ -1,6 +1,6 @@
 __author__ = 'whiord'
 
-import objects.point
+import geometry.d2
 import readconf
 
 import pygame.draw as pd
@@ -53,7 +53,7 @@ class GameController2D(BaseController):
         self.objects = {}
 
         for point in map_config.objects:
-            self.objects[point.id] = objects.point.Point2D(point.x, point.y)
+            self.objects[point.id] = geometry.d2.Point2D(point.x, point.y)
 
         self.edges = map_config.edges
 
@@ -77,10 +77,29 @@ class GameController2D(BaseController):
         #print("GC:", "update called")
         self.display.fill(self.config.background.color)
 
+        intersected = set()
+        objs = self.objects
+        for e1 in self.edges:
+            for e2 in self.edges:
+                if e1 != e2 and e1 not in intersected:
+                    s1 = geometry.d2.Segment(objs[e1[0]], objs[e1[1]])
+                    s2 = geometry.d2.Segment(objs[e2[0]], objs[e2[1]])
+                    if geometry.d2.intersect_seg(s1, s2, self.config.accuracy):
+                        intersected.add(e1)
+                        intersected.add(e2)
+
         for edge in self.edges:
             p1 = self.objects[edge[0]]
             p2 = self.objects[edge[1]]
-            pd.line(self.display, self.config.line.color, (p1.x, p1.y), (p2.x, p2.y), self.config.line.width)
+
+            color = self.config.line.color
+            if edge in intersected:
+                color = self.config.line.bad_color
+            if self.grub_id is not None:
+                if edge[0] == self.grub_id or edge[1] == self.grub_id:
+                    color = self.config.line.active_color
+
+            pd.line(self.display, color, (p1.x, p1.y), (p2.x, p2.y), self.config.line.width)
 
         for id, point in self.objects.items():
             color = self.config.circle.color

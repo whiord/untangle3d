@@ -3,8 +3,6 @@ __author__ = "whiord"
 import pygame
 import pygame.locals as pl
 import pygame.time as pt
-import json
-import io
 import Tkinter, tkFileDialog
 
 import engine.gc

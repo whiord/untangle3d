@@ -17,7 +17,7 @@ def open_json(file_name):
 
 def construct(js):
     if isinstance(js, list):
-        res = [construct(val) for val in js]
+        res = tuple(construct(val) for val in js)
         return res
     elif isinstance(js, dict):
         res = Configuration()
