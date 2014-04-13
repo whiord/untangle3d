@@ -1,0 +1,31 @@
+{
+    "type" : "3D",
+    "unit" : "degree",
+    "system" : "spherical",
+    "scale" : 100,
+
+    "objects" :
+        [
+            {
+                "id" : 0,
+                "alpha" : 0,
+                "beta" : 90,
+                "rho" : 1
+            },
+            {
+                "id" : 1,
+                "alpha" : 0,
+                "beta" : -90,
+                "rho" : 1
+            },
+            {
+                "id" : 2,
+                "alpha" : 0,
+                "beta" : 0,
+                "rho" : 1
+            }
+        ],
+
+    "edges" :
+        [ [0,1], [0,2], [1,2] ]
+}
