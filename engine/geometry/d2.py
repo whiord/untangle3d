@@ -19,6 +19,12 @@ class Point2D:
         return (self.x**2 + self.y**2) ** 0.5
 
 
+class Circle(Point2D):
+    def __init__(self, x, y, radius):
+        Point2D.__init__(self, x, y)
+        self.radius = radius
+
+
 class Line(object):
     def __init__(self, p1, p2):
         self.A = p1.y - p2.y

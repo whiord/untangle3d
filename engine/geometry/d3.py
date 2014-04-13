@@ -37,6 +37,12 @@ class Point3D:
         b = other.to_cartesian()
         return a.x * b.x + a.y * b.y + a.z * b.z
 
+    def __str__(self):
+        if self.cs == COORD_SYSTEM_CARTESIAN:
+            return "point(x:{}, y:{}, z:{})".format(self.x, self.y, self.z)
+        elif self.cs == COORD_SYSTEM_SPHERICAL:
+            return "point(a:{}, b:{}, r:{})".format(self.alpha, self.beta, self.rho)
+
     def to_cartesian(self):
         if self.cs == COORD_SYSTEM_SPHERICAL:
             x = self.rho * cos(self.alpha) * cos(self.beta)
@@ -49,9 +55,8 @@ class Point3D:
     def to_spherical(self):
         if self.cs == COORD_SYSTEM_CARTESIAN:
             rho = (self.x ** 2 + self.y ** 2 + self.z ** 2) ** 0.5
-            rho_xy = (self.x ** 2 + self.y ** 2) ** 0.5
-            alpha = asin(self.y / rho_xy)
             beta = asin(self.z / rho)
+            alpha = atan2(self.y, self.x)
             return Point3D(alpha, beta, rho, COORD_SYSTEM_SPHERICAL)
         else:
             return Point3D(self.alpha, self.beta, self.rho, COORD_SYSTEM_SPHERICAL)
