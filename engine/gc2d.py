@@ -88,7 +88,7 @@ class GameController2D(BaseController):
                 if e1 != e2 and e1 not in intersected:
                     s1 = gd2.Segment(objs[e1[0]], objs[e1[1]])
                     s2 = gd2.Segment(objs[e2[0]], objs[e2[1]])
-                    if gd2.intersect_seg(s1, s2, self.config.accuracy):
+                    if s1.intersect_seg(s2, self.config.accuracy):
                         intersected.add(e1)
                         intersected.add(e2)
 

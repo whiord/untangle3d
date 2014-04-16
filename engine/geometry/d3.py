@@ -1,6 +1,8 @@
 __author__ = 'whiord'
 
 from math import *
+from rotators import *
+import d2
 
 COORD_SYSTEM_CARTESIAN = 0
 COORD_SYSTEM_SPHERICAL = 1
@@ -60,3 +62,48 @@ class Point3D:
             return Point3D(alpha, beta, rho, COORD_SYSTEM_SPHERICAL)
         else:
             return Point3D(self.alpha, self.beta, self.rho, COORD_SYSTEM_SPHERICAL)
+
+
+class DeepPoint(d2.Point2D):
+    def __init__(self, x, y, depth=0):
+        d2.Point2D.__init__(x, y)
+        self.depth = depth
+
+
+class Scene3D:
+    def __init__(self):
+        self.objects = {}
+        self.links = set()
+        self.center = Point3D(0, 0, 0)
+
+    def move_center(self, vector):
+        self.center += vector
+        for id, obj in self.objects.items():
+            if obj.cs == COORD_SYSTEM_CARTESIAN:
+                self.objects[id] = obj + vector
+
+    def add_object(self, id, object):
+        if object.cs == COORD_SYSTEM_CARTESIAN:
+            self.objects[id] = object + self.center
+        else:
+            self.objects[id] = object
+
+    def add_link(self, id1, id2):
+        if id1 not in self.objects or id2 not in self.objects:
+            return
+
+        self.links.add((id1, id2))
+
+    def rotate(self, projection_vector, dx, dy, rotator=BaseRotator()):
+        rotator.rotate(self, projection_vector, dx, dy)
+
+    def project(self, projection_vector):
+        """ project(projection_vector, distance) -> Scene2D
+            Projects 3D scene to plane orthogonal with projection vector.
+            Sets in result DeepPoint instances with depth equal to distance
+             from point to plane.
+            Projection vector points to center of projection plane.
+        """
+        # TODO
+        pass
+

@@ -25,48 +25,70 @@ class Circle(Point2D):
         self.radius = radius
 
 
-class Line(object):
+class Line():
     def __init__(self, p1, p2):
         self.A = p1.y - p2.y
         self.B = p2.x - p1.x
         self.C = p1.x*p2.y - p2.x*p1.y
 
+    def intersect_line(self, other):
+        l1, l2 = self, other
+        den = l1.A*l2.B - l2.A*l1.B
+        if den == 0:
+            return None
+
+        x = (l2.C*l1.B - l1.C*l2.B) / den
+        y = (l2.A*l1.C - l2.C*l1.A) / den
+        return Point2D(x, y)
+
 
 class Segment(Line):
     def __init__(self, p1, p2):
-        super(Segment, self).__init__(p1, p2)
+        Line.__init__(self, p1, p2)
         self.p1 = p1
         self.p2 = p2
 
+    def intersect_seg(self, other, acc):
+        s1, s2 = self, other
+        p = s1.intersect_line(s2)
 
-def intersect_line(l1, l2):
-    den = l1.A*l2.B - l2.A*l1.B
-    if den == 0:
+        if p is None:
+            return None
+
+        t1 = s1.p2 - s1.p1
+        t2 = s2.p2 - s2.p1
+
+        u1 = p - s1.p1
+        u2 = p - s2.p1
+
+        cos1 = t1*u1
+        cos2 = t2*u2
+
+        if cos1 < 0 or cos2 < 0:
+            return None
+
+        if acc <= u1.length() <= t1.length()-acc and acc <= u2.length() <= t2.length() - acc:
+            return p
+
         return None
 
-    x = (l2.C*l1.B - l1.C*l2.B) / den
-    y = (l2.A*l1.C - l2.C*l1.A) / den
-    return Point2D(x, y)
 
+class Scene2D:
+    def __init__(self):
+        self.objects = {}
+        self.links = set()
+        self.center = Point2D(0, 0)
 
-def intersect_seg(s1, s2, acc):
-    p = intersect_line(s1, s2)
-    if p is None:
-        return False
+    def move_center(self, vector):
+        self.center += vector
+        for id, obj in self.objects.items():
+            self.objects[id] = obj + vector
 
-    t1 = s1.p2 - s1.p1
-    t2 = s2.p2 - s2.p1
+    def add_object(self, id, object):
+        self.objects[id] = object + self.center
 
-    u1 = p - s1.p1
-    u2 = p - s2.p1
+    def add_link(self, id1, id2):
+        if id1 not in self.objects or id2 not in self.objects:
+            return
 
-    cos1 = t1*u1
-    cos2 = t2*u2
-
-    if cos1 < 0 or cos2 < 0:
-        return False
-
-    if acc <= u1.length() <= t1.length()-acc and acc <= u2.length() <= t2.length() - acc:
-        return True
-
-    return False
+        self.links.add((id1, id2))
