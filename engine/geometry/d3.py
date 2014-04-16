@@ -118,6 +118,28 @@ class Scene3D:
              from point to plane.
             Projection vector points to center of projection plane.
         """
-        # TODO
-        pass
+        scene = d2.Scene2D()
+        scene.links = self.links
 
+        norm_prj = projection_vector.normalized()
+        prj_len = projection_vector.length()
+        naY = norm_prj.to_spherical()
+
+        naX = Point3D(pi/2.0, 0, 1, COORD_SYSTEM_SPHERICAL)
+        naX.alpha += naY.alpha
+        naX.beta += naY.beta
+
+        naY.alpha += pi
+        naY.beta = pi/2.0 - naY.beta
+
+        for id, object in self.objects.items():
+            obj_prj_len = object * norm_prj
+            #obj_prj = norm_prj * obj_prj_len
+            depth = prj_len - obj_prj_len
+
+            nx = object * naX
+            ny = object * naY
+
+            scene.add_object(id, DeepPoint(nx, ny, depth))
+
+        return scene
