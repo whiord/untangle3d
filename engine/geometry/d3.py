@@ -36,14 +36,28 @@ class Point3D:
 
     def __mul__(self, other):
         a = self.to_cartesian()
-        b = other.to_cartesian()
-        return a.x * b.x + a.y * b.y + a.z * b.z
+        if type(other) == Point3D:
+            b = other.to_cartesian()
+            return a.x * b.x + a.y * b.y + a.z * b.z
+        elif type(other) == float or type(other) == int:
+            return Point3D(a.x*other, a.y*other, a.z*other)
 
     def __str__(self):
         if self.cs == COORD_SYSTEM_CARTESIAN:
             return "point(x:{}, y:{}, z:{})".format(self.x, self.y, self.z)
         elif self.cs == COORD_SYSTEM_SPHERICAL:
             return "point(a:{}, b:{}, r:{})".format(self.alpha, self.beta, self.rho)
+
+    def length(self):
+        if self.cs == COORD_SYSTEM_SPHERICAL:
+            return self.rho
+        else:
+            return (self.x**2 + self.y**2 + self.z**2) ** 0.5
+
+    def normalized(self):
+        buf = self.to_spherical()
+        buf.rho = 1.0
+        return buf if self.cs == COORD_SYSTEM_SPHERICAL else buf.to_cartesian()
 
     def to_cartesian(self):
         if self.cs == COORD_SYSTEM_SPHERICAL:
