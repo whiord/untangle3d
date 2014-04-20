@@ -2,6 +2,7 @@ __author__ = 'whiord'
 
 import utils
 
+
 class BaseRotator:
     def __init__(self):
         pass
@@ -31,7 +32,8 @@ class AxisRotator(BaseRotator):
         BaseRotator.__init__(self)
 
     def rotate(self, scene, projection_vector, dx, dy):
-        buf = projection_vector.to_sphercial()
+        buf = projection_vector.to_spherical()
         buf.alpha += utils.deg_to_rad(dx)
         buf.beta += utils.deg_to_rad(dy)
+        print "@@@ Screen vector:", buf
         return buf

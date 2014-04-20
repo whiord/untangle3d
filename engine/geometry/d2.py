@@ -9,8 +9,11 @@ class Point2D:
     def dist_to(self, x, y):
         return ((self.x - x) ** 2 + (self.y - y) ** 2) ** 0.5
 
+    def __add__(self, other):
+        return Point2D(self.x + other.x, self.y + other.y)
+
     def __sub__(self, other):
-        return Point2D(self.x-other.x, self.y - other.y)
+        return Point2D(self.x - other.x, self.y - other.y)
 
     def __mul__(self, other):
         return self.x*other.x + self.y*other.y
@@ -23,6 +26,15 @@ class Circle(Point2D):
     def __init__(self, x, y, radius):
         Point2D.__init__(self, x, y)
         self.radius = radius
+
+    def __sub__(self, other):
+        return Circle(self.x - other.x, self.y - other.y, self.radius)
+
+    def __add__(self, other):
+        return Circle(self.x + other.x, self.y + other.y, self.radius)
+
+    def __str__(self):
+        return "circle(x:{}, y:{}, rad:{})".format(self.x, self.y, self.radius)
 
 
 class Line():
@@ -82,10 +94,10 @@ class Scene2D:
     def move_center(self, vector):
         self.center += vector
         for id, obj in self.objects.items():
-            self.objects[id] = obj + vector
+            self.objects[id] = obj - vector
 
     def add_object(self, id, object):
-        self.objects[id] = object + self.center
+        self.objects[id] = object - self.center
 
     def add_link(self, id1, id2):
         if id1 not in self.objects or id2 not in self.objects:

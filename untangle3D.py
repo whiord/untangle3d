@@ -45,7 +45,6 @@ class AppController:
                     if event.key == pl.K_o:
                         self.__open_map()
                 else:
-                    print(event)
                     self.gc.dispatch(event)
 
             self.gc.update(self.clock.get_fps(), self.clock.get_time())

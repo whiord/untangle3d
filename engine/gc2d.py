@@ -15,54 +15,58 @@ class GameController2D(BaseController):
 
     def __init__(self):
         BaseController.__init__(self)
+        self.scene_rect = pygame.Rect(0, 0, 0, 0)
 
     def _find_point(self, pos):
-        for id, point in self.objects.items():
+        for id, point in self.scene.objects.items():
             if point.dist_to(*pos) < self.config.circle.radius * self.config.circle.grub_coef:
                 return id
         return None
 
-    def _adjust(self):
-        minx = maxx = self.objects.values()[0].x
-        miny = maxy = self.objects.values()[0].y
+    def _move_system(self):
+        minx = maxx = self.scene.objects.values()[0].x
+        miny = maxy = self.scene.objects.values()[0].y
 
-        for point in self.objects.values():
+        for point in self.scene.objects.values():
             minx = min(minx, point.x)
             miny = min(miny, point.y)
             maxx = max(maxx, point.x)
             maxy = max(maxy, point.y)
 
-        dx = self.config.borders - minx
-        dy = self.config.borders - miny
-        maxx += dx
-        maxy += dy
-        for point in self.objects.values():
-            point.x += dx
-            point.y += dy
+        nx, ny = minx - self.config.borders, miny - self.config.borders
+        self.scene.move_center(gd2.Point2D(nx, ny))
 
-        maxx = int(round(maxx))
-        maxy = int(round(maxy))
-        self.display = pdis.set_mode((maxx + self.config.borders, maxy + self.config.borders), pygame.RESIZABLE)
+        width = maxx-minx+2*self.config.borders
+        height = maxy-miny+2*self.config.borders
+
+        self.scene_rect = pygame.Rect((0, 0), (width, height))
+
+    def _adjust(self):
+        self.display = pdis.set_mode(self.scene_rect.size, pygame.RESIZABLE)
+        print("Scene rect:", self.scene_rect, self.scene_rect.center)
 
     def _resize(self, size):
         old_size = self.display.get_size()
         scale_x = float(size[0])/float(old_size[0])
         scale_y = float(size[1])/float(old_size[1])
-        for point in self.objects.values():
+        for point in self.scene.objects.values():
             point.x *= scale_x
             point.y *= scale_y
         self.display = pdis.set_mode(size, pygame.RESIZABLE)
 
     def open(self, map_config):
         BaseController.open(self, map_config)
-        self.objects = {}
+        self.scene = gd2.Scene2D()
 
         for point in map_config.objects:
-            self.objects[point.id] = gd2.Circle(point.x, point.y, self.config.circle.radius)
+            self.scene.add_object(point.id, gd2.Circle(point.x, point.y, self.config.circle.radius))
 
-        self.edges = map_config.edges
+        for i, j in map_config.edges:
+            self.scene.add_link(i, j)
+
+        self._move_system()
         self._adjust()
-        print("GC:", "objects created: ", len(self.objects))
+        print("GC:", "objects created: ", len(map_config.objects))
 
     def dispatch(self, event):
         if event.type == pl.MOUSEBUTTONDOWN:
@@ -72,8 +76,8 @@ class GameController2D(BaseController):
                     self.grub_id = id
         elif event.type == pl.MOUSEMOTION:
             if self.grub_id is not None:
-                self.objects[self.grub_id].x = event.pos[0]
-                self.objects[self.grub_id].y = event.pos[1]
+                self.scene.objects[self.grub_id].x = event.pos[0]
+                self.scene.objects[self.grub_id].y = event.pos[1]
         elif event.type == pl.MOUSEBUTTONUP:
             if event.button == 1:
                 self.grub_id = None
@@ -82,9 +86,10 @@ class GameController2D(BaseController):
 
     def _draw(self):
         intersected = set()
-        objs = self.objects
-        for e1 in self.edges:
-            for e2 in self.edges:
+        cent_x, cent_y = 0, 0
+        objs = self.scene.objects
+        for e1 in self.scene.links:
+            for e2 in self.scene.links:
                 if e1 != e2 and e1 not in intersected:
                     s1 = gd2.Segment(objs[e1[0]], objs[e1[1]])
                     s2 = gd2.Segment(objs[e2[0]], objs[e2[1]])
@@ -92,9 +97,9 @@ class GameController2D(BaseController):
                         intersected.add(e1)
                         intersected.add(e2)
 
-        for edge in self.edges:
-            p1 = self.objects[edge[0]]
-            p2 = self.objects[edge[1]]
+        for edge in self.scene.links:
+            p1 = objs[edge[0]]
+            p2 = objs[edge[1]]
 
             color = self.config.line.color
             if edge in intersected:
@@ -103,20 +108,19 @@ class GameController2D(BaseController):
                 if edge[0] == self.grub_id or edge[1] == self.grub_id:
                     color = self.config.line.active_color
 
-            pd.line(self.display, color, (p1.x, p1.y), (p2.x, p2.y), self.config.line.width)
-            #pd.aaline(self.display, color, (p1.x, p1.y), (p2.x, p2.y), True)
+            pd.line(self.display, color, (p1.x + cent_x, p1.y + cent_y),
+                    (p2.x + cent_x, p2.y + cent_y), self.config.line.width)
 
-        for id, point in self.objects.items():
+        for id, point in objs.items():
             color = self.config.circle.color
             if id == self.grub_id:
                 color = self.config.circle.active_color
-            pd.circle(self.display, color, (int(round(point.x)), int(round(point.y))), int(round(point.radius)))
-            #pgfx.aacircle(self.display, int(round(point.x)), int(round(point.y)), int(round(point.radius)), color)
+            pd.circle(self.display, color, (int(round(point.x + cent_x)),
+                                            int(round(point.y + cent_y))), int(round(point.radius)))
 
-        self._render_info("tangled: {}/{}".format(len(intersected), len(self.edges)))
+        self._render_info("tangled: {}/{}".format(len(intersected), len(self.scene.links)))
 
     def update(self, fps, time):
-        #print("GC:", "update called")
         self.display.fill(self.config.background.color)
         self.info_y = 10
 

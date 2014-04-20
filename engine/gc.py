@@ -22,8 +22,7 @@ class BaseController:
         self.config = readconf.open_json(BaseController.CONFIG_FILE)
         self.display = None
         self.map_config = None
-        self.objects = None
-        self.edges = None
+        self.scene = None
         self.grub_id = None
         self.info_y = None
 
